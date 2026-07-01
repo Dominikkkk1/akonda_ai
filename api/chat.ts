@@ -1,89 +1,77 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { SYSTEM_PROMPT } from '../lib/knowledge';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export const runtime = 'edge';
 export const maxDuration = 60;
 
 const RATE_LIMIT_MAX_MESSAGES = 30;
 
-export default async function handler(req: Request): Promise<Response> {
-  const corsHeaders: Record<string, string> = {
-    'Access-Control-Allow-Origin': req.headers.get('origin') || 'https://akonda.pl',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Chat-Secret',
-  };
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const origin = (req.headers.origin as string) || 'https://akonda.pl';
+
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Chat-Secret');
 
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
+    return res.status(204).end();
   }
 
   if (req.method !== 'POST') {
-    return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const origin = req.headers.get('origin') || '';
   if (origin && !origin.includes('akonda.pl') && !origin.includes('localhost') && !origin.includes('vercel.app')) {
-    return Response.json({ error: 'Forbidden' }, { status: 403, headers: corsHeaders });
+    return res.status(403).json({ error: 'Forbidden' });
   }
 
-  const secret = req.headers.get('x-chat-secret');
+  const secret = req.headers['x-chat-secret'];
   if (secret !== process.env.CHAT_SECRET) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  let body: { messages: Array<{ role: string; content: string }>; sessionId?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return Response.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
-
-  if (!body.messages || !Array.isArray(body.messages) || body.messages.length === 0) {
-    return Response.json({ error: 'Messages required' }, { status: 400 });
+  const body = req.body;
+  if (!body?.messages || !Array.isArray(body.messages) || body.messages.length === 0) {
+    return res.status(400).json({ error: 'Messages required' });
   }
 
   if (body.messages.length > RATE_LIMIT_MAX_MESSAGES) {
-    return Response.json({ error: 'Too many messages in session' }, { status: 429 });
+    return res.status(429).json({ error: 'Too many messages' });
   }
 
-  // Sanitize messages
-  const messages = body.messages.map((m) => ({
+  const messages = body.messages.map((m: any) => ({
     role: m.role === 'assistant' ? 'assistant' as const : 'user' as const,
     content: String(m.content).slice(0, 2000),
   }));
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const stream = await client.messages.stream({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages,
-  });
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const event of stream) {
-          if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`));
-          }
-        }
-        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-        controller.close();
-      } catch (err) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Stream error' })}\n\n`));
-        controller.close();
-      }
-    },
-  });
+    const stream = client.messages.stream({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages,
+    });
 
-  return new Response(readable, {
-    headers: {
-      ...corsHeaders,
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-    },
-  });
+    stream.on('text', (text) => {
+      res.write(`data: ${JSON.stringify({ text })}\n\n`);
+    });
+
+    stream.on('end', () => {
+      res.write('data: [DONE]\n\n');
+      res.end();
+    });
+
+    stream.on('error', (err) => {
+      res.write(`data: ${JSON.stringify({ error: 'Stream error' })}\n\n`);
+      res.end();
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 }
