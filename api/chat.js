@@ -67,7 +67,7 @@ module.exports = async function handler(req, res) {
     res.setHeader('Connection', 'keep-alive');
 
     const stream = client.messages.stream({
-      model: 'claude-sonnet-4-6-20250725',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: cleaned,
