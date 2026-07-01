@@ -36,8 +36,7 @@ const SYSTEM_PROMPT = `Jesteś Asystentem Akonda — profesjonalnym doradcą ds.
 - Podawaj linki: https://akonda.pl/produkt/[slug]/`;
 
 module.exports = async function handler(req, res) {
-  const origin = req.headers.origin || 'https://akonda.pl';
-  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Chat-Secret');
 
