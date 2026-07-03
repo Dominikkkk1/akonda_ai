@@ -122,6 +122,16 @@ Podawaj ZAWSZE jako klikalne linki:
 
 Jeśli nie znasz konkretnego produktu, zaproponuj kontakt z handlowcem zamiast wymyślać URL.`;
 
+// Simple IP rate limiter (in-memory, resets on cold start)
+const ipCounts = {};
+const RATE_LIMIT_PER_IP = 60; // max requests per IP per hour
+function checkRateLimit(ip) {
+  const hour = new Date().toISOString().slice(0, 13);
+  const key = ip + ':' + hour;
+  ipCounts[key] = (ipCounts[key] || 0) + 1;
+  return ipCounts[key] <= RATE_LIMIT_PER_IP;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -133,6 +143,11 @@ module.exports = async function handler(req, res) {
   const secret = req.headers['x-chat-secret'];
   if (secret !== process.env.CHAT_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || 'unknown';
+  if (!checkRateLimit(ip)) {
+    return res.status(429).json({ error: 'Rate limit exceeded' });
   }
 
   const { messages } = req.body || {};
