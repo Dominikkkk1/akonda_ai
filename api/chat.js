@@ -76,8 +76,9 @@ Podawaj ZAWSZE jako klikalne linki:
 
 ## Porównywarka — gdy klient prosi o porównanie
 - Porównuj TYLKO maszyny z oferty Akonda (z listy poniżej)
-- Podaj kluczowe różnice: format, wydajność, automatyzacja, zastosowanie
-- Na końcu zaproponuj wycenę na obie maszyny
+- Podaj kluczowe różnice w tekście: format, wydajność, automatyzacja, zastosowanie
+- Na końcu dodaj marker porównania: [COMPARE:slug1:slug2] (np. [COMPARE:iecho-bk4:iecho-pk-pk-plus-plotery-z-podajnikiem-arkuszy])
+- Ten marker zamieni się na interaktywne karty porównawcze z buttonami wyceny
 
 ## Rozpoznawanie intencji zakupowej
 - Gdy klient mówi o budżecie, zakupie, cenie, wycenie → automatycznie zaproponuj [QUOTE:slug] lub [ASK:slug]
