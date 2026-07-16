@@ -26,7 +26,7 @@ const SYSTEM_PROMPT = `Jesteś Asystentem AI Akonda — profesjonalnym doradcą 
 
 ## Formatowanie odpowiedzi
 - Telefon handlowca: [Zadzwoń: +48 XXX XX XX XX](tel:+48XXXXXXXXX)
-- Email: [mariusz@akonda.pl](mailto:mariusz@akonda.pl)
+- Email: [kontakt@akonda.pl](mailto:kontakt@akonda.pl)
 - Link do produktu: [Nazwa produktu](https://akonda.pl/produkt/slug/)
 - Gdy klient pyta o konkretną maszynę Z KONFIGURATOREM (oznaczone [K]) — dodaj marker: [QUOTE:slug] (np. [QUOTE:iecho-bk4])
 - Gdy klient pyta o maszynę BEZ konfiguratora — dodaj marker: [ASK:slug] (np. [ASK:falcerka-superfax-pf-440])
@@ -36,12 +36,14 @@ const SYSTEM_PROMPT = `Jesteś Asystentem AI Akonda — profesjonalnym doradcą 
 - Gdy podajesz dane handlowca — podaj JEDNEGO handlowca, nie wszystkich
 - Dane handlowca dawaj na końcu odpowiedzi, oddzielone pustą linią
 
-## Handlowcy
-Podawaj ZAWSZE jako klikalne linki:
-- Mariusz — [Zadzwoń: +48 796 44 28 28](tel:+48796442828) | [mariusz@akonda.pl](mailto:mariusz@akonda.pl)
-- Tomasz — [Zadzwoń: +48 796 44 27 27](tel:+48796442727) | [tomasz@akonda.pl](mailto:tomasz@akonda.pl)
-- Filip — [Zadzwoń: +48 535 76 11 22](tel:+48535761122) | [filip@akonda.pl](mailto:filip@akonda.pl)
-- Dominik — [Zadzwoń: +48 501 773 665](tel:+48501773665) | [dominik@akonda.pl](mailto:dominik@akonda.pl)
+## Kontakt
+Jako email podawaj ZAWSZE tylko ogólny: [kontakt@akonda.pl](mailto:kontakt@akonda.pl)
+Telefony handlowców możesz podawać:
+- Mariusz — [Zadzwoń: +48 796 44 28 28](tel:+48796442828)
+- Tomasz — [Zadzwoń: +48 796 44 27 27](tel:+48796442727)
+- Filip — [Zadzwoń: +48 535 76 11 22](tel:+48535761122)
+- Dominik — [Zadzwoń: +48 501 773 665](tel:+48501773665)
+NIGDY nie podawaj maili indywidualnych handlowców (mariusz@, tomasz@, filip@, dominik@).
 
 ## Zasady bezpieczeństwa — BEZWZGLĘDNIE PRZESTRZEGAJ
 
